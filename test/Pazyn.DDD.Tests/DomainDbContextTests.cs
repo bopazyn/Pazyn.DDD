@@ -8,55 +8,55 @@ using Xunit;
 
 namespace Pazyn.DDD.Tests
 {
-    public class Expense : Entity<Int32>
-    {
-        public ExpenseType Type { get; private set; }
-
-        private Expense()
-        {
-        }
-
-        public Expense(ExpenseType type) : this()
-        {
-            SetType(type);
-        }
-
-        public void SetType(ExpenseType type) => Type = type;
-    }
-
-    public class ExpenseType : Entity<Int32>
-    {
-        public String Name { get; private set; }
-
-        private ExpenseType()
-        {
-        }
-
-        private ExpenseType(Int32 id, String name) : this()
-        {
-            Id = id;
-            Name = name;
-        }
-
-        public static readonly ExpenseType Hobby = new ExpenseType(1, nameof(Hobby));
-        public static readonly ExpenseType Food = new ExpenseType(2, nameof(Food));
-        public static readonly ExpenseType Bills = new ExpenseType(3, nameof(Bills));
-    }
-
-    public class ExpenseDbContext : DomainDbContext
-    {
-        public DbSet<Expense> Expenses { get; set; }
-
-        public ExpenseDbContext(DbContextOptions options) : base(options)
-        {
-        }
-
-        protected override void PreAttachEntities() => 
-            AttachRange(ExpenseType.Hobby, ExpenseType.Food, ExpenseType.Bills);
-    }
-
     public class DomainDbContextTests
     {
+        public class Expense : Entity<Int32>
+        {
+            public ExpenseType Type { get; private set; }
+
+            private Expense()
+            {
+            }
+
+            public Expense(ExpenseType type) : this()
+            {
+                SetType(type);
+            }
+
+            public void SetType(ExpenseType type) => Type = type;
+        }
+
+        public class ExpenseType : Entity<Int32>
+        {
+            public String Name { get; private set; }
+
+            private ExpenseType()
+            {
+            }
+
+            private ExpenseType(Int32 id, String name) : this()
+            {
+                Id = id;
+                Name = name;
+            }
+
+            public static readonly ExpenseType Hobby = new ExpenseType(1, nameof(Hobby));
+            public static readonly ExpenseType Food = new ExpenseType(2, nameof(Food));
+            public static readonly ExpenseType Bills = new ExpenseType(3, nameof(Bills));
+        }
+
+        public class ExpenseDbContext : DomainDbContext
+        {
+            public DbSet<Expense> Expenses { get; set; }
+
+            public ExpenseDbContext(DbContextOptions options) : base(options)
+            {
+            }
+
+            protected override void PreAttachEntities() =>
+                AttachRange(ExpenseType.Hobby, ExpenseType.Food, ExpenseType.Bills);
+        }
+
         [Fact]
         public async Task DomainDbContext_PreAttachEntities()
         {
