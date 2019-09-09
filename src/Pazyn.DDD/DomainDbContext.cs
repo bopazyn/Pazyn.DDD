@@ -7,7 +7,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Pazyn.DDD
 {
@@ -104,8 +103,7 @@ namespace Pazyn.DDD
 
         public override async Task<Int32> SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
-            var infrastructure = this.GetInfrastructure();
-            var mediator = infrastructure.GetService<IMediator>();
+            var mediator = this.GetService<IMediator>();
             var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
             await Task.WhenAll(DispatchDomainEventsAsync(mediator, cancellationToken));
             return result;
@@ -123,7 +121,7 @@ namespace Pazyn.DDD
             yield return DispatchDomainEventsAsync<Guid>(mediator, cancellationToken);
         }
 
-        private async Task DispatchDomainEventsAsync<T>(IMediator mediator, CancellationToken cancellationToken) where T : struct
+        private Task DispatchDomainEventsAsync<T>(IMediator mediator, CancellationToken cancellationToken) where T : struct
         {
             var domainEntities = ChangeTracker
                 .Entries<AggregateRoot<T>>()
@@ -139,10 +137,7 @@ namespace Pazyn.DDD
                 entity.Entity.ClearDomainEvents();
             }
 
-            if (mediator != null)
-            {
-                await Task.WhenAll(domainEvents.Select(x => mediator.Publish(x, cancellationToken)));
-            }
+            return Task.WhenAll(domainEvents.Select(x => mediator.Publish(x, cancellationToken)));
         }
     }
 }

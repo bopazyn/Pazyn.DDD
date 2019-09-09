@@ -1,16 +1,22 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace Pazyn.DDD.Tests
 {
     public class DomainDbContextTests
     {
-        public class Expense : Entity<Int32>
+        public class ExpenseEvent : INotification
+        {
+        }
+
+        public class Expense : AggregateRoot<Int32>
         {
             public ExpenseType Type { get; private set; }
 
@@ -24,6 +30,7 @@ namespace Pazyn.DDD.Tests
             }
 
             public void SetType(ExpenseType type) => Type = type;
+            public void AddDomainEvent() => AddDomainEvent(new ExpenseEvent());
         }
 
         public class ExpenseType : Entity<Int32>
@@ -86,6 +93,31 @@ namespace Pazyn.DDD.Tests
                 }
 
                 await expenseDbContext.SaveChangesAsync();
+            }
+        }
+
+        [Fact]
+        public async Task DomainEvents_TriggerOnce()
+        {
+            var mock = new Mock<IMediator>();
+            mock.Setup(x => x.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+            var serviceProvider = new ServiceCollection()
+                .AddSingleton(mock.Object)
+                .AddDbContextPool<ExpenseDbContext>(x => x.UseInMemoryDatabase(nameof(ExpenseDbContext)))
+                .BuildServiceProvider();
+
+            using (var expenseDbContext = serviceProvider.GetRequiredService<ExpenseDbContext>())
+            {
+                var expense = new Expense(ExpenseType.Hobby);
+                expense.AddDomainEvent();
+
+                expenseDbContext.Expenses.Add(expense);
+                await expenseDbContext.SaveChangesAsync();
+                await expenseDbContext.SaveChangesAsync();
+                await expenseDbContext.SaveChangesAsync();
+
+                mock.Verify(x => x.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()), Times.Once);
             }
         }
     }
