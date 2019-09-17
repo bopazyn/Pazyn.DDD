@@ -87,14 +87,19 @@ namespace Pazyn.DDD
         {
         }
 
+        public void EnsureEntitiesAreAttached()
+        {
+            if (areEntitiesPreAttached)
+            {
+                return;
+            }
+            areEntitiesPreAttached = true;
+            PreAttachEntities();
+        }
+
         public override DbQuery<TQuery> Query<TQuery>()
         {
-            if (!areEntitiesPreAttached)
-            {
-                areEntitiesPreAttached = true;
-                PreAttachEntities();
-            }
-
+            EnsureEntitiesAreAttached();
             return base.Query<TQuery>();
         }
 
