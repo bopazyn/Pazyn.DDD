@@ -12,6 +12,12 @@ namespace Pazyn.DDD
 {
     public class DomainDbContext : DbContext
     {
+        private class DomainEventsToDispatch
+        {
+            public INotification[] DomainEvents { get; set; }
+            public Action ClearDomainEvents { get; set; }
+        }
+
         public DomainDbContext(DbContextOptions options) : base(options)
         {
         }
@@ -93,6 +99,7 @@ namespace Pazyn.DDD
             {
                 return;
             }
+
             areEntitiesPreAttached = true;
             PreAttachEntities();
         }
@@ -106,27 +113,41 @@ namespace Pazyn.DDD
         public override Int32 SaveChanges(Boolean acceptAllChangesOnSuccess) =>
             throw new NotSupportedException("Use async version of this method");
 
-        public override async Task<Int32> SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        public override async Task<Int32> SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken = new CancellationToken())
         {
             var mediator = this.GetService<IMediator>();
+            var domainEventsToDispatches = FindDomainEvents().ToArray();
             var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
-            await Task.WhenAll(DispatchDomainEventsAsync(mediator, cancellationToken));
+
+            foreach (var domainEventsToDispatch in domainEventsToDispatches)
+            {
+                if (mediator != null)
+                {
+                    foreach (var domainEvent in domainEventsToDispatch.DomainEvents)
+                    {
+                        await mediator.Publish(domainEvent, cancellationToken);
+                    }
+                }
+
+                domainEventsToDispatch.ClearDomainEvents();
+            }
+
             return result;
         }
 
-        private IEnumerable<Task> DispatchDomainEventsAsync(IMediator mediator, CancellationToken cancellationToken)
+        private IEnumerable<DomainEventsToDispatch> FindDomainEvents()
         {
-            yield return DispatchDomainEventsAsync<Byte>(mediator, cancellationToken);
-            yield return DispatchDomainEventsAsync<Int16>(mediator, cancellationToken);
-            yield return DispatchDomainEventsAsync<UInt16>(mediator, cancellationToken);
-            yield return DispatchDomainEventsAsync<Int32>(mediator, cancellationToken);
-            yield return DispatchDomainEventsAsync<UInt32>(mediator, cancellationToken);
-            yield return DispatchDomainEventsAsync<Int64>(mediator, cancellationToken);
-            yield return DispatchDomainEventsAsync<UInt64>(mediator, cancellationToken);
-            yield return DispatchDomainEventsAsync<Guid>(mediator, cancellationToken);
+            yield return FindDomainEvents<Byte>();
+            yield return FindDomainEvents<Int16>();
+            yield return FindDomainEvents<UInt16>();
+            yield return FindDomainEvents<Int32>();
+            yield return FindDomainEvents<UInt32>();
+            yield return FindDomainEvents<Int64>();
+            yield return FindDomainEvents<UInt64>();
+            yield return FindDomainEvents<Guid>();
         }
 
-        private Task DispatchDomainEventsAsync<T>(IMediator mediator, CancellationToken cancellationToken) where T : struct
+        private DomainEventsToDispatch FindDomainEvents<T>() where T : struct
         {
             var domainEntities = ChangeTracker
                 .Entries<AggregateRoot<T>>()
@@ -137,12 +158,17 @@ namespace Pazyn.DDD
                 .SelectMany(x => x.Entity.DomainEvents)
                 .ToArray();
 
-            foreach (var entity in domainEntities)
+            return new DomainEventsToDispatch
             {
-                entity.Entity.ClearDomainEvents();
-            }
-
-            return Task.WhenAll(domainEvents.Select(x => mediator.Publish(x, cancellationToken)));
+                DomainEvents = domainEvents,
+                ClearDomainEvents = () =>
+                {
+                    foreach (var entity in domainEntities)
+                    {
+                        entity.Entity.ClearDomainEvents();
+                    }
+                }
+            };
         }
     }
 }
