@@ -15,8 +15,8 @@ namespace Pazyn.DDD.Tests.SampleDomain
             Type = type;
         }
 
-        public ExpenseNumber Number { get; set; }
-        public ExpenseType Type { get;  set; }
+        public ExpenseNumber Number { get; private set; }
+        public ExpenseType Type { get; set; }
 
         public void AddDomainEvent()
         {

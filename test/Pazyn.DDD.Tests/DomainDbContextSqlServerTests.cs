@@ -81,13 +81,13 @@ namespace Pazyn.DDD.Tests
                 await using var expenseDbContext = GetDbContext();
                 expenseDbContext.Expenses.AddRange(
                     new Expense(new ExpenseNumber("1"), ExpenseType.Hobby),
-                    new Expense(new ExpenseNumber("2"), ExpenseType.Hobby),
-                    new Expense(new ExpenseNumber("3"), ExpenseType.Hobby));
+                    new Expense(new ExpenseNumber("2"), ExpenseType.Food),
+                    new Expense(new ExpenseNumber("3"), ExpenseType.Food));
                 await expenseDbContext.SaveChangesAsync();
             }
             {
                 await using var expenseDbContext = GetDbContext();
-                Assert.Equal(0, await expenseDbContext.Expenses.CountAsync(x => x.Id == 0));
+                Assert.Equal(2, await expenseDbContext.Expenses.CountAsync(x => x.Type == ExpenseType.Food));
 
                 Assert.Equal(1, await expenseDbContext.Expenses.CountAsync(x => x.Number == new ExpenseNumber("1")));
                 Assert.Equal(1, await expenseDbContext.Expenses.CountAsync(x => x.Number.Value == "2"));
