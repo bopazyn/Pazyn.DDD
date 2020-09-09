@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Pazyn.DDD
 {
-    public abstract class Entity<T> where T : struct
+    public abstract class Entity<T>
     {
         public T Id { get; protected set; }
 

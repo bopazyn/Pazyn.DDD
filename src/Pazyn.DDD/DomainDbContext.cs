@@ -34,11 +34,10 @@ namespace Pazyn.DDD
             }
 
             currentTransaction = await Database.BeginTransactionAsync(cancellationToken);
-
             return currentTransaction;
         }
 
-        public async Task CommitTransactionAsync(IDbContextTransaction transaction)
+        public async Task CommitTransactionAsync(IDbContextTransaction transaction, CancellationToken cancellationToken = default)
         {
             if (transaction == null)
             {
@@ -52,25 +51,34 @@ namespace Pazyn.DDD
 
             try
             {
-                await SaveChangesAsync();
-                transaction.Commit();
+                await SaveChangesAsync(cancellationToken);
+
+                var domainEventsToDispatches = FindDomainEvents().ToArray();
+                await transaction.CommitAsync(cancellationToken);
+                foreach (var domainEventsToDispatch in domainEventsToDispatches)
+                {
+                    domainEventsToDispatch.ClearDomainEvents();
+                }
+
+                var domainEvents = domainEventsToDispatches.SelectMany(x => x.DomainEvents);
+                await PublishDomainEvents(domainEvents, cancellationToken);
             }
             catch
             {
-                RollbackTransaction();
+                await RollbackTransaction();
                 throw;
             }
             finally
             {
                 if (currentTransaction != null)
                 {
-                    currentTransaction.Dispose();
+                    await currentTransaction.DisposeAsync();
                     currentTransaction = null;
                 }
             }
         }
 
-        public void RollbackTransaction()
+        public async Task RollbackTransaction()
         {
             try
             {
@@ -78,14 +86,18 @@ namespace Pazyn.DDD
             }
             finally
             {
+                foreach (var domainEventsToDispatch in FindDomainEvents())
+                {
+                    domainEventsToDispatch.ClearDomainEvents();
+                }
+
                 if (currentTransaction != null)
                 {
-                    currentTransaction.Dispose();
+                    await currentTransaction.DisposeAsync();
                     currentTransaction = null;
                 }
             }
         }
-
 
         private Boolean areEntitiesPreAttached;
 
@@ -104,35 +116,41 @@ namespace Pazyn.DDD
             PreAttachEntities();
         }
 
-        public override DbQuery<TQuery> Query<TQuery>()
-        {
-            EnsureEntitiesAreAttached();
-            return base.Query<TQuery>();
-        }
-
         public override Int32 SaveChanges(Boolean acceptAllChangesOnSuccess) =>
             throw new NotSupportedException("Use async version of this method");
 
-        public override async Task<Int32> SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken = new CancellationToken())
+        public override async Task<Int32> SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
-            var mediator = this.GetService<IMediator>();
             var domainEventsToDispatches = FindDomainEvents().ToArray();
             var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
 
+            if (HasActiveTransaction)
+            {
+                return result;
+            }
+
             foreach (var domainEventsToDispatch in domainEventsToDispatches)
             {
-                if (mediator != null)
-                {
-                    foreach (var domainEvent in domainEventsToDispatch.DomainEvents)
-                    {
-                        await mediator.Publish(domainEvent, cancellationToken);
-                    }
-                }
-
                 domainEventsToDispatch.ClearDomainEvents();
             }
 
+            var domainEvents = domainEventsToDispatches.SelectMany(x => x.DomainEvents);
+            await PublishDomainEvents(domainEvents, cancellationToken);
             return result;
+        }
+
+        private async Task PublishDomainEvents(IEnumerable<INotification> domainEvents, CancellationToken cancellationToken)
+        {
+            var mediator = this.GetService<IMediator>();
+            if (mediator == null)
+            {
+                return;
+            }
+
+            foreach (var domainEvent in domainEvents)
+            {
+                await mediator.Publish(domainEvent, cancellationToken);
+            }
         }
 
         private IEnumerable<DomainEventsToDispatch> FindDomainEvents()

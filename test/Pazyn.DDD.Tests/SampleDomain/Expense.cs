@@ -4,25 +4,23 @@ namespace Pazyn.DDD.Tests.SampleDomain
 {
     public class Expense : AggregateRoot<Int32>
     {
+        // ReSharper disable once UnusedMember.Local
         private Expense()
         {
         }
 
-        public Expense(ExpenseType type) : this()
+        public Expense(ExpenseNumber number, ExpenseType type)
         {
-            SetType(type);
+            Number = number;
+            Type = type;
         }
 
-        public ExpenseType Type { get; private set; }
+        public ExpenseNumber Number { get; set; }
+        public ExpenseType Type { get;  set; }
 
         public void AddDomainEvent()
         {
             AddDomainEvent(new ExpenseEvent());
-        }
-
-        public void SetType(ExpenseType type)
-        {
-            Type = type;
         }
     }
 }

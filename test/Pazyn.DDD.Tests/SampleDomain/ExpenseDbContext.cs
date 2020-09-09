@@ -12,6 +12,14 @@ namespace Pazyn.DDD.Tests.SampleDomain
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Expense>()
+                .Property(x => x.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Expense>()
+                .Property(x => x.Number)
+                .IsRequired();
+
             modelBuilder.Entity<ExpenseType>()
                 .HasData(
                     ExpenseType.Hobby,
