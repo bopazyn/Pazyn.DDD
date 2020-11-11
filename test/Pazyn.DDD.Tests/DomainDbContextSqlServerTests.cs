@@ -94,5 +94,33 @@ namespace Pazyn.DDD.Tests
                 Assert.Equal(1, await expenseDbContext.Expenses.CountAsync(x => x.Number.Value.Contains("3")));
             }
         }
+
+        [Fact]
+        public async Task EventsAreTriggerOnlyOnce()
+        {
+            await using var expenseDbContext = GetDbContext();
+
+            var expense = new Expense(new ExpenseNumber("1"), ExpenseType.Hobby);
+            expense.AddDomainEvent();
+            expenseDbContext.Expenses.Add(expense);
+
+            await expenseDbContext.SaveChangesAsync();
+            Assert.Empty(expense.DomainEvents);
+        }
+
+        [Theory]
+        [InlineData(-2, 3)]
+        [InlineData(-10, 11)]
+        public async Task EventsAreTriggerInChain(Int32 n, Int32 expected)
+        {
+            await using var expenseDbContext = GetDbContext();
+
+            var expense = new Expense(new ExpenseNumber(n.ToString()), ExpenseType.Hobby);
+            expense.AddDomainEvent();
+            expenseDbContext.Expenses.Add(expense);
+
+            await expenseDbContext.SaveChangesAsync();
+            Assert.Equal(expected, await expenseDbContext.Expenses.CountAsync());
+        }
     }
 }

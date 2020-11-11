@@ -82,7 +82,10 @@ namespace Pazyn.DDD
         {
             try
             {
-                currentTransaction?.Rollback();
+                if (currentTransaction != null)
+                {
+                    await currentTransaction.RollbackAsync();
+                }
             }
             finally
             {

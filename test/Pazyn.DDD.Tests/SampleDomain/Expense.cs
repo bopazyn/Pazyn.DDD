@@ -20,7 +20,10 @@ namespace Pazyn.DDD.Tests.SampleDomain
 
         public void AddDomainEvent()
         {
-            AddDomainEvent(new ExpenseEvent());
+            AddDomainEvent(new ExpenseEvent
+            {
+                Number = Number,
+            });
         }
     }
 }
