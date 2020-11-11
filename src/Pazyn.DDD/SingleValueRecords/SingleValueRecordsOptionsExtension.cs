@@ -6,14 +6,13 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Pazyn.DDD.SingleValue
+namespace Pazyn.DDD.SingleValueRecords
 {
-    
-    public class ValueObjectsOptionsExtension : IDbContextOptionsExtension
+    public class SingleValueRecordsOptionsExtension : IDbContextOptionsExtension
     {
         private ValueConverter[] ValueConverters { get; }
 
-        public ValueObjectsOptionsExtension(ValueConverter[] valueConverters)
+        public SingleValueRecordsOptionsExtension(ValueConverter[] valueConverters)
         {
             ValueConverters = valueConverters;
         }
@@ -27,8 +26,8 @@ namespace Pazyn.DDD.SingleValue
 
             new EntityFrameworkRelationalServicesBuilder(services)
                 .TryAddProviderSpecificServices(x => x
-                    .TryAddSingletonEnumerable<IRelationalTypeMappingSourcePlugin>(new ValueObjectsRelationalTypeMappingSourcePlugin(ValueConverters))
-                    .TryAddSingletonEnumerable<IMemberTranslatorPlugin, ValueObjectsMemberTranslatorPlugin>(sp => ActivatorUtilities.CreateInstance<ValueObjectsMemberTranslatorPlugin>(sp, ValueConverters as Object))
+                    .TryAddSingletonEnumerable<IRelationalTypeMappingSourcePlugin>(new SingleValueRecordsRelationalTypeMappingSourcePlugin(ValueConverters))
+                    .TryAddSingletonEnumerable<IMemberTranslatorPlugin, SingleValueRecordsMemberTranslatorPlugin>(sp => ActivatorUtilities.CreateInstance<SingleValueRecordsMemberTranslatorPlugin>(sp, ValueConverters as Object))
                 );
         }
 
@@ -49,9 +48,9 @@ namespace Pazyn.DDD.SingleValue
             public override Int64 GetServiceProviderHashCode() => 0;
 
             public override void PopulateDebugInfo(IDictionary<String, String> debugInfo) =>
-                debugInfo[$"Pazyn: {nameof(ValueObjectsOptionsExtension)}"] = "1";
+                debugInfo[$"Pazyn: {nameof(SingleValueRecordsOptionsExtension)}"] = "1";
 
-            public override String LogFragment => $"using {nameof(ValueObjectsOptionsExtension)}";
+            public override String LogFragment => $"using {nameof(SingleValueRecordsOptionsExtension)}";
         }
     }
 }

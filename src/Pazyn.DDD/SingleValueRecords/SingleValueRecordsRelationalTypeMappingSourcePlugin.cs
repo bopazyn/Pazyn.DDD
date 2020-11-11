@@ -5,19 +5,19 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace Pazyn.DDD.SingleValue
+namespace Pazyn.DDD.SingleValueRecords
 {
-    public class ValueObjectsRelationalTypeMappingSourcePlugin : IRelationalTypeMappingSourcePlugin
+    public class SingleValueRecordsRelationalTypeMappingSourcePlugin : IRelationalTypeMappingSourcePlugin
     {
-        public class ValueObjectsRelationalTypeMapping : RelationalTypeMapping
+        public class SingleValueRecordsRelationalTypeMapping : RelationalTypeMapping
         {
-            private ValueObjectsRelationalTypeMapping(RelationalTypeMappingParameters parameters) : base(parameters)
+            private SingleValueRecordsRelationalTypeMapping(RelationalTypeMappingParameters parameters) : base(parameters)
             {
             }
 
-            protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters) => new ValueObjectsRelationalTypeMapping(parameters);
+            protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters) => new SingleValueRecordsRelationalTypeMapping(parameters);
 
-            public static ValueObjectsRelationalTypeMapping Create(ValueConverter valueConverter)
+            public static SingleValueRecordsRelationalTypeMapping Create(ValueConverter valueConverter)
             {
                 var coreTypeMappingParameters = new CoreTypeMappingParameters(valueConverter.ProviderClrType, valueConverter, valueGeneratorFactory: valueConverter.MappingHints?.ValueGeneratorFactory);
                 RelationalTypeMappingParameters relationalTypeMappingParameters = default;
@@ -47,16 +47,16 @@ namespace Pazyn.DDD.SingleValue
                     relationalTypeMappingParameters = new RelationalTypeMappingParameters(coreTypeMappingParameters, "bigint", StoreTypePostfix.None, System.Data.DbType.Int64);
                 }
 
-                return new ValueObjectsRelationalTypeMapping(relationalTypeMappingParameters);
+                return new SingleValueRecordsRelationalTypeMapping(relationalTypeMappingParameters);
             }
         }
 
-        private ConcurrentDictionary<Type, ValueObjectsRelationalTypeMapping> Converters { get; }
+        private ConcurrentDictionary<Type, SingleValueRecordsRelationalTypeMapping> Converters { get; }
 
-        public ValueObjectsRelationalTypeMappingSourcePlugin(IEnumerable<ValueConverter> valueConverters)
+        public SingleValueRecordsRelationalTypeMappingSourcePlugin(IEnumerable<ValueConverter> valueConverters)
         {
-            Converters = new ConcurrentDictionary<Type, ValueObjectsRelationalTypeMapping>(
-                valueConverters.Select(ValueObjectsRelationalTypeMapping.Create)
+            Converters = new ConcurrentDictionary<Type, SingleValueRecordsRelationalTypeMapping>(
+                valueConverters.Select(SingleValueRecordsRelationalTypeMapping.Create)
                     .ToDictionary(x => x.ClrType, x => x)
                     .AsEnumerable());
         }

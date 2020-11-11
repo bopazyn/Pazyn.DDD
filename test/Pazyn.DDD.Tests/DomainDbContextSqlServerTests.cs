@@ -5,7 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.DependencyInjection;
-using Pazyn.DDD.SingleValue;
+using Pazyn.DDD.SingleValueRecords;
 using Pazyn.DDD.Tests.SampleDomain;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,7 +23,7 @@ namespace Pazyn.DDD.Tests
                 .AddDbContext<ExpenseDbContext>(builder =>
                     builder.UseSqlServer("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=PazynDDDTest;Integrated Security=True")
                         .EnableSensitiveDataLogging()
-                        .UseValueObjectsSqlServer(
+                        .UseSingleValueRecords(
                             new ValueConverter<ExpenseNumber, String>(y => y.Value, y => new ExpenseNumber(y)))
                         .UseLoggerFactory(xUnitLogger.ToLoggerFactory()), ServiceLifetime.Transient)
                 .BuildServiceProvider();

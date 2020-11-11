@@ -1,12 +1,11 @@
 using System;
-using Pazyn.DDD.SingleValue;
 
 namespace Pazyn.DDD.Tests.SampleDomain
 {
-    public class ExpenseNumber : SingleValueObject<String>
+    public record ExpenseNumber
     {
-        public ExpenseNumber(String value) : base(value)
-        {
-        }
+        public String Value { get; init; }
+
+        public ExpenseNumber(String value) => Value = value;
     }
 }

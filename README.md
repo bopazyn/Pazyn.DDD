@@ -25,11 +25,10 @@ public class Expense : AggregateRoot<Int32>
     public ExpenseType Type { get; private set; }
 }
 
-public class ExpenseNumber : SingleValueObject<String>
+public record ExpenseNumber
 {
-    public ExpenseNumber(String value) : base(value)
-    {
-    }
+    public String String { get; init; }
+    public ExpenseNumber(String value) => Value = value;
 }
 
 public class ExpenseType : Entity<Int32>
@@ -81,7 +80,7 @@ public void ConfigureServices(IServiceCollection services)
         .AddDbContext<ExpenseDbContext>(builder =>
             builder.UseSqlServer("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=PazynDDDTest;Integrated Security=True")
                 .EnableSensitiveDataLogging()
-                .UseValueObjectsSqlServer(
+                .UseSingleValueRecords(
                     new ValueConverter<ExpenseNumber, String>(y => y.Value, y => new ExpenseNumber(y)))
                 .UseLoggerFactory(xUnitLogger.ToLoggerFactory()), ServiceLifetime.Transient)
 }
