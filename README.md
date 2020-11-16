@@ -3,8 +3,6 @@
 Library contains set of base classes to work with with Entit Framework's DbContext:
 - [`Entity`](./blob/master/src/Pazyn.DDD/Entity.cs)
 - [`AggreagteRoot`](./blob/master/src/Pazyn.DDD/AggregateRoot.cs)
-- [`ValueObject`](./blob/master/src/Pazyn.DDD/ValueObject.cs)
-- [`SingleValueObject`](./blob/master/src/Pazyn.DDD/SingleValue/SingleValueObject.cs)
 
 ## Example
 
