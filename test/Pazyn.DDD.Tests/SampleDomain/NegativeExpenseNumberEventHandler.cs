@@ -2,9 +2,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
-using Pazyn.DDD.Tests.SampleDomain;
 
-namespace Pazyn.DDD
+namespace Pazyn.DDD.Tests.SampleDomain
 {
     public class NegativeExpenseNumberEventHandler : INotificationHandler<ExpenseEvent>
     {
@@ -23,7 +22,7 @@ namespace Pazyn.DDD
                 return;
             }
 
-            if (n == 0)
+            if (n >= 0)
             {
                 return;
             }

@@ -28,7 +28,7 @@ namespace Pazyn.DDD.Tests
                         .UseLoggerFactory(xUnitLogger.ToLoggerFactory()), ServiceLifetime.Transient)
                 .BuildServiceProvider();
 
-            using var expenseDbContext = GetDbContext();
+            using var expenseDbContext = ServiceProvider.GetRequiredService<ExpenseDbContext>();
             expenseDbContext.Database.EnsureCreated();
         }
 
@@ -58,7 +58,6 @@ namespace Pazyn.DDD.Tests
 
                 await expenseDbContext.SaveChangesAsync();
             }
-
             {
                 await using var expenseDbContext = GetDbContext();
                 var savedExpenses = expenseDbContext.Expenses
@@ -121,6 +120,23 @@ namespace Pazyn.DDD.Tests
 
             await expenseDbContext.SaveChangesAsync();
             Assert.Equal(expected, await expenseDbContext.Expenses.CountAsync());
+        }
+
+        [Fact]
+        public async Task EventsAreTriggerAfterTransactionCommit()
+        {
+            await using var expenseDbContext = GetDbContext();
+
+            var expense = new Expense(new ExpenseNumber("1"), ExpenseType.Hobby);
+            expense.AddDomainEvent();
+            expenseDbContext.Expenses.Add(expense);
+
+            await using var transaction = await expenseDbContext.BeginTransactionAsync();
+            await expenseDbContext.SaveChangesAsync();
+            Assert.NotEmpty(expense.DomainEvents);
+
+            await expenseDbContext.CommitTransactionAsync(transaction);
+            Assert.Empty(expense.DomainEvents);
         }
     }
 }

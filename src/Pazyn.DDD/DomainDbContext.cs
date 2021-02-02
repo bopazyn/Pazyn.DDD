@@ -1,28 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Pazyn.DDD
 {
     public class DomainDbContext : DbContext
     {
-        private class DomainEventsToDispatch
+        public DomainDbContext(DbContextOptions options, IPublisher publisher) : base(options)
         {
-            public INotification[] DomainEvents { get; set; }
-            public Action ClearDomainEvents { get; set; }
+            Publisher = publisher;
         }
 
-        public DomainDbContext(DbContextOptions options) : base(options)
-        {
-        }
-
+        internal IPublisher Publisher { get; }
         private IDbContextTransaction currentTransaction;
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+            optionsBuilder.AddInterceptors(new DomainEventsInterceptor());
+        }
 
         public Boolean HasActiveTransaction => currentTransaction != null;
 
@@ -51,17 +50,7 @@ namespace Pazyn.DDD
 
             try
             {
-                await SaveChangesAsync(cancellationToken);
-
-                var domainEventsToDispatches = FindDomainEvents().ToArray();
                 await transaction.CommitAsync(cancellationToken);
-                foreach (var domainEventsToDispatch in domainEventsToDispatches)
-                {
-                    domainEventsToDispatch.ClearDomainEvents();
-                }
-
-                var domainEvents = domainEventsToDispatches.SelectMany(x => x.DomainEvents);
-                await PublishDomainEvents(domainEvents, cancellationToken);
             }
             catch
             {
@@ -89,11 +78,6 @@ namespace Pazyn.DDD
             }
             finally
             {
-                foreach (var domainEventsToDispatch in FindDomainEvents())
-                {
-                    domainEventsToDispatch.ClearDomainEvents();
-                }
-
                 if (currentTransaction != null)
                 {
                     await currentTransaction.DisposeAsync();
@@ -121,75 +105,5 @@ namespace Pazyn.DDD
 
         public override Int32 SaveChanges(Boolean acceptAllChangesOnSuccess) =>
             throw new NotSupportedException("Use async version of this method");
-
-        public override async Task<Int32> SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
-        {
-            var domainEventsToDispatches = FindDomainEvents().ToArray();
-            var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
-
-            if (HasActiveTransaction)
-            {
-                return result;
-            }
-
-            foreach (var domainEventsToDispatch in domainEventsToDispatches)
-            {
-                domainEventsToDispatch.ClearDomainEvents();
-            }
-
-            var domainEvents = domainEventsToDispatches.SelectMany(x => x.DomainEvents);
-            await PublishDomainEvents(domainEvents, cancellationToken);
-            return result;
-        }
-
-        private async Task PublishDomainEvents(IEnumerable<INotification> domainEvents, CancellationToken cancellationToken)
-        {
-            var mediator = this.GetService<IMediator>();
-            if (mediator == null)
-            {
-                return;
-            }
-
-            foreach (var domainEvent in domainEvents)
-            {
-                await mediator.Publish(domainEvent, cancellationToken);
-            }
-        }
-
-        private IEnumerable<DomainEventsToDispatch> FindDomainEvents()
-        {
-            yield return FindDomainEvents<Byte>();
-            yield return FindDomainEvents<Int16>();
-            yield return FindDomainEvents<UInt16>();
-            yield return FindDomainEvents<Int32>();
-            yield return FindDomainEvents<UInt32>();
-            yield return FindDomainEvents<Int64>();
-            yield return FindDomainEvents<UInt64>();
-            yield return FindDomainEvents<Guid>();
-        }
-
-        private DomainEventsToDispatch FindDomainEvents<T>() where T : struct
-        {
-            var domainEntities = ChangeTracker
-                .Entries<AggregateRoot<T>>()
-                .Where(x => x.Entity.DomainEvents.Any())
-                .ToArray();
-
-            var domainEvents = domainEntities
-                .SelectMany(x => x.Entity.DomainEvents)
-                .ToArray();
-
-            return new DomainEventsToDispatch
-            {
-                DomainEvents = domainEvents,
-                ClearDomainEvents = () =>
-                {
-                    foreach (var entity in domainEntities)
-                    {
-                        entity.Entity.ClearDomainEvents();
-                    }
-                }
-            };
-        }
     }
 }

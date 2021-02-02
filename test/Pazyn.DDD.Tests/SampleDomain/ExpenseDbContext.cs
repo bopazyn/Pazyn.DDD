@@ -1,10 +1,11 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Pazyn.DDD.Tests.SampleDomain
 {
     public class ExpenseDbContext : DomainDbContext
     {
-        public ExpenseDbContext(DbContextOptions options) : base(options)
+        public ExpenseDbContext(DbContextOptions options, IPublisher publisher) : base(options, publisher)
         {
         }
 
@@ -12,6 +13,7 @@ namespace Pazyn.DDD.Tests.SampleDomain
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Expense>()
                 .Property(x => x.Id)
                 .ValueGeneratedOnAdd();
