@@ -1,11 +1,9 @@
-using System;
-
 namespace Pazyn.DDD.Tests.SampleDomain
 {
     public record ExpenseNumber
     {
-        public String Value { get; init; }
+        public string Value { get; }
 
-        public ExpenseNumber(String value) => Value = value;
+        public ExpenseNumber(string value) => Value = value;
     }
 }

@@ -24,7 +24,9 @@ namespace Pazyn.DDD.Tests
                     builder.UseSqlServer("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=PazynDDDTest;Integrated Security=True")
                         .EnableSensitiveDataLogging()
                         .UseSingleValueRecords(
-                            new ValueConverter<ExpenseNumber, String>(y => y.Value, y => new ExpenseNumber(y)))
+                            new ValueConverter<ExpenseNumber, string>(y => y.Value, y => new ExpenseNumber(y))
+                            // new ValueConverter<ExpenseId, int>(y => y.Value, y => new ExpenseId(y))
+                        )
                         .UseLoggerFactory(xUnitLogger.ToLoggerFactory()), ServiceLifetime.Transient)
                 .BuildServiceProvider();
 
@@ -87,7 +89,6 @@ namespace Pazyn.DDD.Tests
             {
                 await using var expenseDbContext = GetDbContext();
                 Assert.Equal(2, await expenseDbContext.Expenses.CountAsync(x => x.Type == ExpenseType.Food));
-
                 Assert.Equal(1, await expenseDbContext.Expenses.CountAsync(x => x.Number == new ExpenseNumber("1")));
                 Assert.Equal(1, await expenseDbContext.Expenses.CountAsync(x => x.Number.Value == "2"));
                 Assert.Equal(1, await expenseDbContext.Expenses.CountAsync(x => x.Number.Value.Contains("3")));
@@ -110,7 +111,7 @@ namespace Pazyn.DDD.Tests
         [Theory]
         [InlineData(-2, 3)]
         [InlineData(-10, 11)]
-        public async Task EventsAreTriggerInChain(Int32 n, Int32 expected)
+        public async Task EventsAreTriggerInChain(int n, int expected)
         {
             await using var expenseDbContext = GetDbContext();
 

@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 
 namespace Pazyn.DDD.Tests.SampleDomain
 {
@@ -16,6 +17,7 @@ namespace Pazyn.DDD.Tests.SampleDomain
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Expense>()
                 .Property(x => x.Id)
+                .HasValueGenerator<TemporaryIntValueGenerator>()
                 .ValueGeneratedOnAdd();
 
             modelBuilder.Entity<Expense>()

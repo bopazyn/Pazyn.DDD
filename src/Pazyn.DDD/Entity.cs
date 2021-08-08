@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Pazyn.DDD
 {
@@ -7,9 +6,9 @@ namespace Pazyn.DDD
     {
         public T Id { get; protected set; }
 
-        public override Boolean Equals(Object obj)
+        public override bool Equals(object obj)
         {
-            if (!(obj is Entity<T> other))
+            if (obj is not Entity<T> other)
                 return false;
 
             if (ReferenceEquals(this, other))
@@ -25,7 +24,7 @@ namespace Pazyn.DDD
             return comparer.Compare(Id, other.Id) == 0;
         }
 
-        public static Boolean operator ==(Entity<T> a, Entity<T> b)
+        public static bool operator ==(Entity<T> a, Entity<T> b)
         {
             if (a is null && b is null)
                 return true;
@@ -36,12 +35,12 @@ namespace Pazyn.DDD
             return a.Equals(b);
         }
 
-        public static Boolean operator !=(Entity<T> a, Entity<T> b)
+        public static bool operator !=(Entity<T> a, Entity<T> b)
         {
             return !(a == b);
         }
 
-        public override Int32 GetHashCode()
+        public override int GetHashCode()
         {
             return (GetType().ToString() + Id).GetHashCode();
         }

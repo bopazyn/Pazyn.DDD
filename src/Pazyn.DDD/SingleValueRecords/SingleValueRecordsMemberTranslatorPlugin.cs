@@ -31,12 +31,12 @@ namespace Pazyn.DDD.SingleValueRecords
         }
 
         public SingleValueRecordsMemberTranslatorPlugin(ISqlExpressionFactory sqlExpressionFactory, ValueConverter[] valueConverters) =>
-            translators = valueConverters
+            _translators = valueConverters
                 .Select(x => new ValueObjectsMemberTranslator(sqlExpressionFactory, x.ModelClrType))
                 .Cast<IMemberTranslator>()
                 .ToArray();
 
-        private readonly IMemberTranslator[] translators;
-        public IEnumerable<IMemberTranslator> Translators => translators;
+        private readonly IMemberTranslator[] _translators;
+        public IEnumerable<IMemberTranslator> Translators => _translators;
     }
 }

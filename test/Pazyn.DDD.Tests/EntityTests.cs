@@ -1,17 +1,16 @@
-﻿using System;
-using Xunit;
+﻿using Xunit;
 
 namespace Pazyn.DDD.Tests
 {
     public class EntityTests
     {
-        internal class ExampleEntity : Entity<Int32>
+        private class ExampleEntity : Entity<int>
         {
             public ExampleEntity()
             {
             }
 
-            public ExampleEntity(Int32 id) : this() => Id = id;
+            public ExampleEntity(int id) : this() => Id = id;
         }
 
         [Fact]

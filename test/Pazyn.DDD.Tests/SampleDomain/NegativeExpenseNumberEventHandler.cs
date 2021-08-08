@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -17,7 +16,7 @@ namespace Pazyn.DDD.Tests.SampleDomain
 
         public async Task Handle(ExpenseEvent notification, CancellationToken cancellationToken)
         {
-            if (!Int32.TryParse(notification.Number.Value, out var n))
+            if (!int.TryParse(notification.Number.Value, out var n))
             {
                 return;
             }

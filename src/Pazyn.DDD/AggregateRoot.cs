@@ -1,18 +1,17 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using MediatR;
 
 namespace Pazyn.DDD
 {
     public abstract class AggregateRoot<T> : Entity<T>
     {
-        private readonly List<INotification> domainEvents = new List<INotification>();
-        public virtual IReadOnlyList<INotification> DomainEvents => domainEvents.ToList();
+        private readonly List<INotification> _domainEvents = new();
+        public IEnumerable<INotification> DomainEvents => _domainEvents.AsReadOnly();
 
-        protected virtual void AddDomainEvent(INotification newEvent) =>
-            domainEvents.Add(newEvent);
+        protected void AddDomainEvent(INotification newEvent) =>
+            _domainEvents.Add(newEvent);
 
-        public virtual void ClearDomainEvents() =>
-            domainEvents.Clear();
+        public void ClearDomainEvents() =>
+            _domainEvents.Clear();
     }
 }

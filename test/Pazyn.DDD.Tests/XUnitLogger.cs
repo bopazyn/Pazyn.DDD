@@ -15,19 +15,19 @@ namespace Pazyn.DDD.Tests
 
         private class CustomLogger : ILogger
         {
-            private readonly ITestOutputHelper output;
+            private readonly ITestOutputHelper _output;
 
             public CustomLogger(ITestOutputHelper output)
             {
-                this.output = output;
+                _output = output;
             }
 
-            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, String> formatter)
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
             {
-                output.WriteLine($"{logLevel} {eventId} {state} {exception?.Message}");
+                _output.WriteLine($"{logLevel} {eventId} {state} {exception?.Message}");
             }
 
-            public Boolean IsEnabled(LogLevel logLevel) => true;
+            public bool IsEnabled(LogLevel logLevel) => true;
 
             public IDisposable BeginScope<TState>(TState state)
             {
@@ -37,18 +37,18 @@ namespace Pazyn.DDD.Tests
 
         private class CustomLoggerProvider : ILoggerProvider
         {
-            private readonly ITestOutputHelper output;
+            private readonly ITestOutputHelper _output;
 
             public CustomLoggerProvider(ITestOutputHelper output)
             {
-                this.output = output;
+                _output = output;
             }
 
             public void Dispose()
             {
             }
 
-            public ILogger CreateLogger(String categoryName) => new CustomLogger(output);
+            public ILogger CreateLogger(string categoryName) => new CustomLogger(_output);
         }
 
         private ITestOutputHelper Output { get; }

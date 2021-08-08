@@ -22,27 +22,27 @@ namespace Pazyn.DDD.SingleValueRecords
                 var coreTypeMappingParameters = new CoreTypeMappingParameters(valueConverter.ProviderClrType, valueConverter, valueGeneratorFactory: valueConverter.MappingHints?.ValueGeneratorFactory);
                 RelationalTypeMappingParameters relationalTypeMappingParameters = default;
 
-                if (valueConverter.ProviderClrType == typeof(String))
+                if (valueConverter.ProviderClrType == typeof(string))
                 {
                     relationalTypeMappingParameters = new RelationalTypeMappingParameters(coreTypeMappingParameters, "nvarchar(max)", StoreTypePostfix.None, System.Data.DbType.String);
                 }
 
-                if (valueConverter.ProviderClrType == typeof(Double))
+                if (valueConverter.ProviderClrType == typeof(double))
                 {
                     relationalTypeMappingParameters = new RelationalTypeMappingParameters(coreTypeMappingParameters, "float", StoreTypePostfix.None, System.Data.DbType.Double);
                 }
 
-                if (valueConverter.ProviderClrType == typeof(Decimal))
+                if (valueConverter.ProviderClrType == typeof(decimal))
                 {
                     relationalTypeMappingParameters = new RelationalTypeMappingParameters(coreTypeMappingParameters, "decimal", StoreTypePostfix.PrecisionAndScale, System.Data.DbType.Decimal, precision: 18, scale: 2);
                 }
 
-                if (valueConverter.ProviderClrType == typeof(Int32))
+                if (valueConverter.ProviderClrType == typeof(int))
                 {
                     relationalTypeMappingParameters = new RelationalTypeMappingParameters(coreTypeMappingParameters, "int", StoreTypePostfix.None, System.Data.DbType.Int32);
                 }
 
-                if (valueConverter.ProviderClrType == typeof(Int64))
+                if (valueConverter.ProviderClrType == typeof(long))
                 {
                     relationalTypeMappingParameters = new RelationalTypeMappingParameters(coreTypeMappingParameters, "bigint", StoreTypePostfix.None, System.Data.DbType.Int64);
                 }

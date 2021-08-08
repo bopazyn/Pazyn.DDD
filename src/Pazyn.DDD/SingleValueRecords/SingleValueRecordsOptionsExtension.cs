@@ -27,7 +27,7 @@ namespace Pazyn.DDD.SingleValueRecords
             new EntityFrameworkRelationalServicesBuilder(services)
                 .TryAddProviderSpecificServices(x => x
                     .TryAddSingletonEnumerable<IRelationalTypeMappingSourcePlugin>(new SingleValueRecordsRelationalTypeMappingSourcePlugin(ValueConverters))
-                    .TryAddSingletonEnumerable<IMemberTranslatorPlugin, SingleValueRecordsMemberTranslatorPlugin>(sp => ActivatorUtilities.CreateInstance<SingleValueRecordsMemberTranslatorPlugin>(sp, ValueConverters as Object))
+                    .TryAddSingletonEnumerable<IMemberTranslatorPlugin, SingleValueRecordsMemberTranslatorPlugin>(sp => ActivatorUtilities.CreateInstance<SingleValueRecordsMemberTranslatorPlugin>(sp, ValueConverters as object))
                 );
         }
 
@@ -44,13 +44,13 @@ namespace Pazyn.DDD.SingleValueRecords
             {
             }
 
-            public override Boolean IsDatabaseProvider => false;
-            public override Int64 GetServiceProviderHashCode() => 0;
+            public override bool IsDatabaseProvider => false;
+            public override long GetServiceProviderHashCode() => 0;
 
-            public override void PopulateDebugInfo(IDictionary<String, String> debugInfo) =>
+            public override void PopulateDebugInfo(IDictionary<string, string> debugInfo) =>
                 debugInfo[$"Pazyn: {nameof(SingleValueRecordsOptionsExtension)}"] = "1";
 
-            public override String LogFragment => $"using {nameof(SingleValueRecordsOptionsExtension)}";
+            public override string LogFragment => $"using {nameof(SingleValueRecordsOptionsExtension)}";
         }
     }
 }

@@ -5,7 +5,7 @@ namespace Pazyn.DDD
 {
     internal class DomainEventsToDispatch
     {
-        public INotification[] DomainEvents { get; set; }
-        public Action ClearDomainEvents { get; set; }
+        public INotification[] DomainEvents { get; init; }
+        public Action ClearDomainEvents { get; init; }
     }
 }

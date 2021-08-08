@@ -15,7 +15,7 @@ namespace Pazyn.DDD
         }
 
         internal IPublisher Publisher { get; }
-        private IDbContextTransaction currentTransaction;
+        private IDbContextTransaction _currentTransaction;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -23,17 +23,17 @@ namespace Pazyn.DDD
             optionsBuilder.AddInterceptors(new DomainEventsInterceptor());
         }
 
-        public Boolean HasActiveTransaction => currentTransaction != null;
+        public bool HasActiveTransaction => _currentTransaction != null;
 
         public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
         {
-            if (currentTransaction != null)
+            if (_currentTransaction != null)
             {
                 return null;
             }
 
-            currentTransaction = await Database.BeginTransactionAsync(cancellationToken);
-            return currentTransaction;
+            _currentTransaction = await Database.BeginTransactionAsync(cancellationToken);
+            return _currentTransaction;
         }
 
         public async Task CommitTransactionAsync(IDbContextTransaction transaction, CancellationToken cancellationToken = default)
@@ -43,7 +43,7 @@ namespace Pazyn.DDD
                 throw new ArgumentNullException(nameof(transaction));
             }
 
-            if (transaction != currentTransaction)
+            if (transaction != _currentTransaction)
             {
                 throw new InvalidOperationException($"Transaction {transaction.TransactionId} is not current");
             }
@@ -59,10 +59,10 @@ namespace Pazyn.DDD
             }
             finally
             {
-                if (currentTransaction != null)
+                if (_currentTransaction != null)
                 {
-                    await currentTransaction.DisposeAsync();
-                    currentTransaction = null;
+                    await _currentTransaction.DisposeAsync();
+                    _currentTransaction = null;
                 }
             }
         }
@@ -71,22 +71,22 @@ namespace Pazyn.DDD
         {
             try
             {
-                if (currentTransaction != null)
+                if (_currentTransaction != null)
                 {
-                    await currentTransaction.RollbackAsync();
+                    await _currentTransaction.RollbackAsync();
                 }
             }
             finally
             {
-                if (currentTransaction != null)
+                if (_currentTransaction != null)
                 {
-                    await currentTransaction.DisposeAsync();
-                    currentTransaction = null;
+                    await _currentTransaction.DisposeAsync();
+                    _currentTransaction = null;
                 }
             }
         }
 
-        private Boolean areEntitiesPreAttached;
+        private bool _areEntitiesPreAttached;
 
         protected virtual void PreAttachEntities()
         {
@@ -94,16 +94,16 @@ namespace Pazyn.DDD
 
         public void EnsureEntitiesAreAttached()
         {
-            if (areEntitiesPreAttached)
+            if (_areEntitiesPreAttached)
             {
                 return;
             }
 
-            areEntitiesPreAttached = true;
+            _areEntitiesPreAttached = true;
             PreAttachEntities();
         }
 
-        public override Int32 SaveChanges(Boolean acceptAllChangesOnSuccess) =>
+        public override int SaveChanges(bool acceptAllChangesOnSuccess) =>
             throw new NotSupportedException("Use async version of this method");
     }
 }
